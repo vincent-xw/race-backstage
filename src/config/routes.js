@@ -6,19 +6,23 @@ import statistics from '@/pages/statistics/statistics';
 export default [
     {
         path: '/login',
+        name: 'login',
         component: login
     },
     {
         path: '/index',
+        name: 'index',
         alias: '/',
         component: race
     },
     {
         path: '/agent',
+        name: 'agent',
         component: agent
     },
     {
         path: '/statistics',
+        name: 'statistics',
         component: statistics
     }
 ];

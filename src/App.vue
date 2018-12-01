@@ -1,11 +1,26 @@
 <template lang="pug">
-    #app
-        el-container
-            el-header 
-                headerBar
-            el-aside(v-if="isLogin") aside
-            el-main 
-                router-view 
+    el-container#app
+        el-header 
+            headerBar(:isLogin="!isLogin")
+        el-aside(v-if="!isLogin")
+            el-menu.nav-bar(
+                default-active="2",
+                class="el-menu-vertical-demo"
+            )
+                el-menu-item(index="1")
+                    template
+                        i.el-icon-location
+                        span 比赛管理
+                el-menu-item(index="2")
+                    template
+                        i.el-icon-location
+                        span 代理管理
+                el-menu-item(index="3")
+                    template
+                        i.el-icon-location
+                        span 数据统计
+        el-main(:class="{'no-margin':isLogin}") 
+            router-view 
 </template>
 
 
@@ -16,25 +31,56 @@ export default {
     name: 'app',
     data() {
         return {
-            isLogin: true
+            isLogin: false
         };
     },
     components: {
         headerBar
     },
+    mounted() {
+        // 判定登录页面样式修改
+        this.$router.afterEach(to => {
+            if (to.name === 'login') {
+                this.isLogin = true;
+            }
+            else {
+                this.isLogin = false;
+            }
+        });
+    },
+    methods: {
+
+    }
 }
 </script>
 <style lang="less">
-    .el-aside {
-        background: #ffffff;
-        padding-top: 61px;
-        position: absolute;
-        height: 100%;
-        box-shadow: 0 2px 3px hsla(0, 0%, 7%, .1), 0 0 0 1px hsla(0, 0%, 7%, .1);
-    }
-    .el-main {
-        margin-left: 300px;
-        overflow: auto;
-    }
+html {
+    background: #f5f5f5;
+    body {
+        margin: 0;
+        .el-container {
+            padding-top: 61px;
+            .el-aside {
+                background: #ffffff;
+                position: absolute;
+                height: 100%;
+                box-shadow: 0 2px 3px hsla(0, 0%, 7%, .1), 0 0 0 1px hsla(0, 0%, 7%, .1);
+                overflow: hidden !important;
+                .nav-bar {
+                    width: 100%;
+                }
+            }
+            .el-main {
+                margin-left: 300px;
+                overflow: auto;
+                text-align: center;
+            }
+            .no-margin {
+                margin-left: 0;
+            }
+        }
+    }  
+}
+
 </style>
 

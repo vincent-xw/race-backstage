@@ -2,12 +2,15 @@
     el-row
         el-col(:span='21')
             span.main-title 欢迎使用赛马管理后台
-        el-col(:span='3')
+        el-col(:span='3',
+            v-if="isLogin"
+        )
             .user-operation 欢迎admin
     
 </template>
 <script>
 export default {
+    props: ['isLogin'],
     data() {
         return {};
     },
