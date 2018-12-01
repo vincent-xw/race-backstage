@@ -73,7 +73,6 @@ html {
             .el-main {
                 margin-left: 300px;
                 overflow: auto;
-                text-align: center;
             }
             .no-margin {
                 margin-left: 0;

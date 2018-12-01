@@ -10,8 +10,8 @@ export default [
         component: login
     },
     {
-        path: '/index',
-        name: 'index',
+        path: '/race',
+        name: 'race',
         alias: '/',
         component: race
     },
