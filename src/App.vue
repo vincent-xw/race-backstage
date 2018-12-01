@@ -19,6 +19,10 @@
                     template
                         i.el-icon-location
                         span 数据统计
+                el-menu-item(index="4")
+                    template
+                        i.el-icon-location
+                        span 联赛管理
         el-main(:class="{'no-margin':isLogin}") 
             router-view 
 </template>
