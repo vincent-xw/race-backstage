@@ -18,6 +18,10 @@ export default {
 </script>
 <style lang="less">
 header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2;
     width: 100%;
     box-shadow: 0 2px 3px hsla(0, 0%, 7%, .1), 0 0 0 1px hsla(0, 0%, 7%, .1);
     background: #ffffff;

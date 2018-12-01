@@ -1,8 +1,7 @@
 <template lang="pug">
-    p login
+    p race
 </template>
 <script>
-
 export default {
     data() {
         return {};
@@ -13,11 +12,6 @@ export default {
 };
 </script>
 <style lang="less">
-body {
-    margin: 0;
-}
-html {
-    background: #f5f5f5;
-}
+
 </style>
 
