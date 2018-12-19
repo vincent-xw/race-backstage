@@ -10,19 +10,27 @@
                 el-menu-item(index="1")
                     template
                         i.el-icon-location
-                        span 比赛管理
+                        span(
+                        @click="jumpTo('race')"
+                        ) 比赛管理
                 el-menu-item(index="2")
                     template
                         i.el-icon-location
-                        span 代理管理
+                        span(
+                        @click="jumpTo('agent')"
+                        ) 代理管理
                 el-menu-item(index="3")
                     template
                         i.el-icon-location
-                        span 数据统计
+                        span(
+                        @click="jumpTo('statistics')"
+                        ) 数据统计
                 el-menu-item(index="4")
                     template
                         i.el-icon-location
-                        span 联赛管理
+                        span(
+                        @click="jumpTo('league')"
+                        ) 联赛管理
         el-main(:class="{'no-margin':isLogin}") 
             router-view 
 </template>
@@ -53,7 +61,9 @@ export default {
         });
     },
     methods: {
-
+        jumpTo(routeName) {
+          this.$router.push({name: routeName})
+        }
     }
 }
 </script>
