@@ -5,7 +5,7 @@
         el-col(:span='3',
             v-if="isLogin"
         )
-            .user-operation 欢迎admin
+            .user-operation 欢迎登录:管理员
     
 </template>
 <script>

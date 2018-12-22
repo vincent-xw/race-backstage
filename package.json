@@ -24,10 +24,10 @@
     "babel-eslint": "^10.0.1",
     "eslint": "^5.8.0",
     "eslint-plugin-vue": "^5.0.0-0",
+    "mockjs": "^1.0.1-beta3",
     "pug": "^2.0.3",
     "vue-cli-plugin-element": "^1.0.0",
-    "vue-template-compiler": "^2.5.17",
-    "mockjs": "^1.0.1-beta3"
+    "vue-template-compiler": "^2.5.17"
   },
   "eslintConfig": {
     "root": true,
