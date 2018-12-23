@@ -5,6 +5,7 @@
             .agent-setting
             el-button(type='primary' @click="showDialog = true") {{getDialogTitle}}
             el-table(
+                v-loading="loading"
                 :data='agentData'
                 @row-click="itemClick"
             )
@@ -40,7 +41,7 @@
                         size="mini"
                         type="text"
                         :loading="scope.row.delLoading"
-                        @click="delAgent(scope.$index, scope.row)"
+                        @click.prevent.stop="delAgent(scope.$index, scope.row)"
                         ) 删除代理
         el-dialog(
             title="新增代理"
@@ -81,63 +82,74 @@ export default {
       }
     };
 
-    return {
-      agentData: [],
-      showDialog: false,
-      form: {
-        agent_name: undefined,
-        agent_password: undefined,
-        agent_phone: undefined,
-        agent_wechat: undefined,
-        agent_remark: undefined
-      },
-      addLoading: false,
-      dialogType: "created",
-      rules: {
-        agent_name: [{ validator: validatePass, trigger: "blur" }],
-        agent_password: [{ validator: validatePass, trigger: "blur" }],
-        agent_phone: [{ validator: validatePass, trigger: "blur" }],
-        agent_wechat: [{ validator: validatePass, trigger: "blur" }],
-        agent_remark: [{ validator: validatePass, trigger: "blur" }]
-      }
-    };
-  },
-  methods: {
-    /**
-     * 删除代理
-     * @param index 行id
-     * @param { id } 行数据中结构赋值id
-     * */
-    delAgent(index, { id }) {
-      this.agentData[index].delLoading = true;
-      const params = { id };
-      console.log(params);
-      this.$axios
-        .post("/api/backstage/agent/delete", params)
-        .then(res => {
-          if (res.dat.status === 0) {
-            this.getAgentList();
-          }
-        })
-        .catch(err => {
-          console.log(err);
-        });
-    },
-    /**
-     * 点击确认
-     * */
-    clickConfirm() {
-      if (this.checkFormEmpty()) {
-        return;
-      }
-      this.addLoading = true;
-      const params = {
-        ...this.form
+      return {
+        agentData: [],
+        showDialog: false,
+        form: {
+          agent_name: undefined,
+          agent_password: undefined,
+          agent_phone: undefined,
+          agent_wechat: undefined,
+          agent_remark: undefined,
+        },
+        addLoading: false,
+        loading: false,
+        dialogType: "created",
+        rules: {
+          agent_name: [ { validator: validatePass, trigger: "blur" } ],
+          agent_password: [ { validator: validatePass, trigger: "blur" } ],
+          agent_phone: [ { validator: validatePass, trigger: "blur" } ],
+          agent_wechat: [ { validator: validatePass, trigger: "blur" } ],
+          agent_remark: [ { validator: validatePass, trigger: "blur" } ],
+        }
       };
-      console.log(params);
-      this.$axios
-        .post(`/api/backstage/agent/${this.dialogType}`, params)
-        .then(res => {
+    },
+    methods: {
+      /**
+       * 删除代理
+       * @param index 行id
+       * @param { id } 行数据中结构赋值id
+       * */
+      delAgent(index, {id}) {
+        this.$confirm('此操作将删除该代理, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.agentData[index].delLoading = true;
+          const params = {id};
+          console.log(params);
+          this.$axios.post('/api/backstage/agent/delete', params).then(res => {
+            if (res.data.status === 0) {
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              });
+              this.getAgentList();
+            }
+          }).catch(err => {
+            console.log(err);
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
+      },
+      /**
+       * 点击确认
+       * */
+      clickConfirm() {
+        if (this.checkFormEmpty()) {
+            return;
+        }
+        this.addLoading = true;
+        const params = {
+          ...this.form,
+        };
+        console.log(params);
+        this.$axios.post(`/api/backstage/agent/${this.dialogType}`, params).then(res => {
           if (res.data.status === 0) {
             this.getAgentList();
             this.closeDialog();
@@ -179,6 +191,7 @@ export default {
      * 获得代理列表
      * */
     getAgentList() {
+      this.loading = true;
       this.$axios
         .get("/api/backstage/agent/list")
         .then(res => {
@@ -188,9 +201,11 @@ export default {
               return item;
             });
           }
+          this.loading = false;
         })
         .catch(err => {
           console.log(err);
+          this.loading = false;
         });
     }
   },
