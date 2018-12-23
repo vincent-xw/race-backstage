@@ -9,7 +9,7 @@ export default () => {
     let removePending = config => {
         for (let p in pending) {
             // 当当前请求在数组中存在时执行函数体
-            if (pending[p].u === config.url + '&' + config.method) { 
+            if (pending[p].u === config.url + '&' + config.method) {
                 // 执行取消操作
                 pending[p].f();
                 // 把这条记录从数组中移除
@@ -20,16 +20,6 @@ export default () => {
     
     axios.interceptors.request.use(
         config => {
-            if (config.method === 'post' || config.method === 'get') {
-                let str = [];
-
-                for (let p in config.data) {
-
-                    str.push(encodeURIComponent(p) + '=' + encodeURIComponent(config.data[p]));
-
-                }
-                config.data = str.join('&');
-            }
             removePending(config);
             // 在一个ajax发送前执行一下取消操作
             config.CancelToken = new CancelToken(c => {

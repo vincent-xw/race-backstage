@@ -20,16 +20,7 @@
                             end-placeholder='结束日期'
                         )
                     el-form-item(label='联赛归属')
-                        el-select(
-                            v-model="form.leagueId",
-                            placeholder='请选择联赛赛区'
-                        )
-                            el-option(
-                                v-for="item in leagueList",
-                                :key="item.league_id",
-                                :label="item.league_name",
-                                :value="item.league_id"
-                            )
+                        league-list(:form='form')
                     el-form-item(label='比赛类型')
                         el-select(
                             v-model="form.type",
@@ -49,29 +40,34 @@
                             )
                     el-form-item
                         el-button(type='primary', @click="getRaceList") 搜索
-                        el-button(type='primary') 创建比赛
+                        el-button(type='text', @click="gotoCreateRace") 创建比赛
         el-row.race-container
             el-table(
                 :data='raceData',
                 v-loading='loading'
             )
                 el-table-column(
+                    align='center',
                     prop='race_id',
                     label='#'
                 )
                 el-table-column(
+                    align='center',
                     prop='league_name',
                     label='联赛归属'
                 )
                 el-table-column(
+                    align='center',
                     prop='race_time',
                     label='比赛时间'
                 )
                 el-table-column(
+                    align='center',
                     prop='created_time',
                     label='创建时间'
                 )
                 el-table-column(
+                    align='center',
                     prop='race_status',
                     label='比赛状态'
                 )
@@ -84,6 +80,7 @@
             ) 
 </template>
 <script>
+import leagueList from '@/components/leagueList/leagueList'
 export default {
     data() {
         return {
@@ -96,31 +93,18 @@ export default {
                 type: ''
             },
             raceData: [],
-            leagueList: [],
             pageSize: 1,
             currentPage: 1,
             loading: false
         };
     },
+    components: {
+        leagueList
+    },
     mounted() {
-        this.getLeague();
         this.getRaceList();
     },
     methods: {
-        /**
-         * 获取联赛列表
-         */
-        getLeague() {
-            this.$axios.get('/api/backstage/league/list')
-            .then(res => {
-                if (res.data.status === 0) {
-                    this.leagueList = res.data.data.league_list;
-                }
-                else {
-                    this.$message.error(res.data.msg);
-                }
-            });
-        },
         /**
          * 获取比赛列表
          */
@@ -140,14 +124,28 @@ export default {
             }
             this.$axios.get('api/backstage/race/list' + '?' + this.$qs.stringify(data))
             .then(res => {
+                this.loading = false;
                 if (res.data.status === 0) {
                     this.raceData = res.data.data.list_data;
-                    this.loading = false;
                     this.pageSize = res.data.data.page_count;
                     this.currentPage = +res.data.data.page_no || 1;
                 }
                 else {
                     this.$message.error(res.data.msg);
+                }
+            })
+            .catch(err => {
+                this.loading = false;
+            });
+        },
+        /**
+         * 跳转创建比赛列表
+         */
+        gotoCreateRace() {
+            this.$router.push({
+                name: 'raceDetail',
+                params: {
+                    detailId: 'created'
                 }
             });
         }
