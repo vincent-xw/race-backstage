@@ -6,8 +6,9 @@
             .league-setting
                 el-button(type='primary' @click="addLeagueClick") {{getDialogTitle}}
             el-table(
-            :data='raceData'
-            @row-click="itemClick"
+                v-loading="loading"
+                :data='raceData'
+                @row-click="itemClick"
             )
                 el-table-column(
                 prop='league_id',
@@ -42,7 +43,7 @@
                         size="mini"
                         type="text"
                         :loading="scope.row.delLoading"
-                        @click="delLeague(scope.$index, scope.row)"
+                        @click.stop="delLeague(scope.$index, scope.row)"
                         ) 删除
         el-dialog(
         title="新增代理"
@@ -75,7 +76,8 @@
         raceData: [],
         showDialog: false,
         addLoading: false,
-        dialogType: 'created'
+        dialogType: 'created',
+        loading: false
       };
     },
     methods: {
@@ -110,21 +112,37 @@
        * @param { league_id } 行数据中结构赋值id
        * */
       delLeague(index, {league_id}) {
-        this.raceData[index].delLoading = true;
-        const params = {league_id};
-        console.log(params);
-        this.$axios.post('/api/backstage/agent/delete', params).then(res => {
-          if (res.data.status === 0) {
-            this.getLeagueList();
-          }
-        }).catch(err => {
-          console.log(err);
-        })
+        this.$confirm('此操作将删除该联赛, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.raceData[index].delLoading = true;
+          const params = {league_id};
+          console.log(params);
+          this.$axios.post('/api/backstage/agent/delete', params).then(res => {
+            if (res.data.status === 0) {
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              });
+              this.getLeagueList();
+            }
+          }).catch(err => {
+            console.log(err);
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
       },
       /**
        * 获得联赛列表
        * */
       getLeagueList() {
+        this.loading = true;
         this.$axios.get('/api/backstage/league/list').then(res => {
           if (res.data.status === 0) {
             this.raceData = res.data.data.league_list.map(item => {
@@ -134,8 +152,10 @@
               return item;
             })
           }
+          this.loading = false;
         }).catch(err => {
           console.log(err);
+          this.loading = false;
         });
       },
       /**
