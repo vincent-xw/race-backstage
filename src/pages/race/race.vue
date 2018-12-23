@@ -59,18 +59,29 @@
                 el-table-column(
                     align='center',
                     prop='race_time',
-                    label='比赛时间'
+                    label='比赛时间',
+                    :formatter='timeFormatter'
                 )
                 el-table-column(
                     align='center',
                     prop='created_time',
-                    label='创建时间'
+                    label='创建时间',
+                    :formatter='timeFormatter'
                 )
                 el-table-column(
                     align='center',
                     prop='race_status',
                     label='比赛状态'
                 )
+                el-table-column(
+                    align='center',
+                    prop='',
+                    label='操作'
+                )
+                    template(
+                        slot-scope='scope'
+                    )
+                        el-button(type='text', @click='delRace(scope.row)') 删除
             el-pagination(
                 class='race-pagination'
                 layout='prev, pager, next',
@@ -80,8 +91,10 @@
             ) 
 </template>
 <script>
-import leagueList from '@/components/leagueList/leagueList'
+import leagueList from '@/components/leagueList/leagueList';
+import mixins from '@/public/mixins/mixins'
 export default {
+    mixins: [mixins],
     data() {
         return {
             form: {
@@ -147,6 +160,38 @@ export default {
                 params: {
                     detailId: 'created'
                 }
+            });
+        },
+        /**
+         * 删除比赛
+         */
+        delRace(item) {
+            this.$confirm('此操作将删除比赛, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.$axios.post('/api/backstage/race/delete', {
+                    race_id: item.race_id
+                })
+                .then(res => {
+                    let content = res.data;
+                    if (content.status === 0) {
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功!'
+                        });
+                        this.getRaceList();
+                    }
+                    else {
+                        this.$message({
+                            type: 'error',
+                            message: content.msg || '删除失败'
+                        });
+                    }
+                });
+            }).catch(() => {
+                
             });
         }
     }
