@@ -1,5 +1,5 @@
 <template lang="pug">
-    el-row()
+    el-row(v-loading='raceDetailLoading')
         el-row.race-container
             el-col(:span='24')
                 h2 比赛详情 - {{statusText}}
@@ -7,18 +7,18 @@
                     el-button(type='text', v-if="raceDetail.race_status == 1") 结束比赛
                     el-button(type='text', v-if="raceDetail.race_status == 2") 发布成绩
                 el-row
-                    el-alert(type='error', v-if="raceDetail.status == '1'" title='已发布的比赛如需更新需要分开更新比赛信息及马匹信息，马匹信息更新请点击具体马匹')
+                    el-alert(type='error', v-if="raceDetail.race_status == 1" title='已发布的比赛如需更新需要分开更新比赛信息及马匹信息，马匹信息更新请点击具体马匹')
             el-col(:span='24')
                 el-form(
                     ref='form',
-                    :model='form',
+                    :model='raceDetail',
                     label-width='80px',
                 )
                     el-form-item(label='联赛归属')
-                        league-list(:form='form', @getLeagueName="getLeagueName")
-                    el-form-item(label='联赛归属')
+                        league-list(:form='raceDetail', @getLeagueName="getLeagueName")
+                    el-form-item(label='比赛时间')
                         el-date-picker(
-                            v-model='form.race_time',
+                            v-model='raceDetail.race_time',
                             type='date',
                             value-format='timestamp',
                             placeholder='请选择比赛时间'
@@ -27,7 +27,7 @@
                         .horse-operation
                             el-button(
                                 type="text",
-                                v-for="item in horseInfo" :key="item.id",
+                                v-for="item in raceDetail.horse_info" :key="item.horse_id",
                                 @click="modifyHorse(item)"
                             ) {{formatHorseName(item)}}
                         el-dialog(
@@ -97,32 +97,33 @@
                                     el-button(type='danger', @click="delHorse") 删除
                     
                     el-form-item
-                        el-button(type='text' @click="addHorse" v-if="raceDetail.race_status == 0") 新建马匹
+                        el-button(type='text' @click="createHorse" v-if="raceDetail.race_status <= 0") 新建马匹
                     el-form-item(
                         label='赔率设置',
                         v-if="raceDetail.race_status == 2"
                     )
                         el-col(:span='11')
                             el-input(
-                                v-model="form.head_odds",
+                                v-model="raceDetail.head_odds",
                                 placeholder='请输入头赔率',
                                 width='49%'
                             )
                         el-col(:span='1') &nbsp;
                         el-col(:span='11')
                             el-input(
-                                v-model="form.foot_odds",
+                                v-model="raceDetail.foot_odds",
                                 placeholder='请输入脚赔率',
                                 width='49%'
                             )
                     el-form-item
-                        el-button(type='text', @click='saveRaceInfo' :loading='buttonLoading') 保存比赛信息
+                        el-button(type='text', v-if="raceDetail.race_status == -1" @click='saveRaceInfo' :loading='buttonLoading') 创建比赛信息
+                        el-button(type='text', v-if="raceDetail.race_status == 0" @click='updateRaceInfo' :loading='buttonLoading') 更新比赛信息
                         el-button(type='text', v-if="raceDetail.race_status == 2") 更新比赛赔率
         el-row.race-container
             el-col(:span='24')
                 h2 投注情况
             el-table(
-                :data='betData'
+                :data='raceDetail.bet_info'
             )
                 el-table-column(
                     prop='id',
@@ -168,21 +169,22 @@ import leagueList from '@/components/leagueList/leagueList';
 export default {
     data() {
         return {
-            // 比赛信息
-            form: {},
             // 比赛详情
-            raceDetail: {},
+            raceDetail: {
+                // 马匹信息数组
+                horse_info: [],
+                race_status: -1
+            },
             // 投注信息
             betData: [],
-            // 马匹信息数组
-            horseInfo: [],
             // 马匹信息编辑窗口
             dialogVisible: false,
             // 单个马匹信息
             horseItem: {},
             // 接收联赛名称
             league_name: '',
-            buttonLoading: false
+            buttonLoading: false,
+            raceDetailLoading: false
         };
     },
     components: {
@@ -190,9 +192,34 @@ export default {
     },
     created() {
         let {detailId} = this.$route.params;
-        this.raceDetail.race_status = detailId === 'created' ? 0 : '';
+        this.raceDetail.race_status = detailId === 'created' ? 0 : 1;
+        if (detailId !== 'created' || detailId !== 0) {
+            this.getRaceDetail(detailId);
+        }
     },
     methods: {
+        /**
+         * 获取比赛详情
+         */
+        getRaceDetail(detailId) {
+            this.raceDetailLoading = true;
+            this.$axios.get('/api/backstage/race/info' + '?' + this.$qs.stringify({
+                race_id: detailId
+            }))
+            .then(res => {
+                this.raceDetailLoading = false;
+                let content = res.data;
+                if (content.status === 0) {
+                    this.raceDetail = content.data;
+                    console.log(this.raceDetail);  
+                    this.$message.success('请求成功');
+                }
+                else {
+                    this.raceDetailLoading = false;
+                    this.$message.error(content.msg || '请求失败');
+                }
+            });
+        },
         /**
          * 获取league_name
          */
@@ -200,15 +227,15 @@ export default {
             this.league_name = name;
         },
         /**
-         * 保存或者更新比赛信息
+         * 保存比赛信息
          */
         saveRaceInfo() {
             this.buttonLoading = true;
             let postParam = {
-                league_id: this.form.leagueId,
+                league_id: this.raceDetail.league_id,
                 league_name: this.league_name,
-                race_time: this.form.race_time,
-                horse_info: this.horseInfo
+                race_time: this.raceDetail.race_time,
+                horse_info: this.raceDetail.horse_info
             };
             if (!postParam.league_id || !postParam.league_name) {
                 this.$message.error('请选择比赛赛区');
@@ -244,18 +271,63 @@ export default {
             });
         },
         /**
+         * 更新比赛信息
+         */
+        updateRaceInfo() {
+            this.buttonLoading = true;
+            let postParam = {
+                race_id: this.raceDetail.race_id,
+                league_id: this.raceDetail.league_id,
+                league_name: this.league_name || this.raceDetail.league_name,
+                race_time: this.raceDetail.race_time,
+                horse_info: this.raceDetail.horse_info
+            };
+            if (!postParam.league_id || !postParam.league_name) {
+                this.$message.error('请选择比赛赛区');
+                this.buttonLoading = false;
+                return;
+            }
+            if (!postParam.race_time) {
+                this.$message.error('请选择比赛时间');
+                this.buttonLoading = false;
+                return;
+            }
+            if (postParam.horse_info.length === 0) {
+                this.$message.error('不能删除所有的马匹');
+                this.buttonLoading = false;
+                return;
+            }
+            this.$axios.post('/api/backstage/race/update', postParam)
+            .then(res => {
+                this.buttonLoading = false;
+                let content = res.data;
+                if (content.status === 0) {
+                    this.$message.success('更新成功');
+                    this.$router.replace({
+                        name: 'race'
+                    });
+                }
+                else {
+                    this.$message.error(content.msg);
+                }
+            })
+            .catch(err => {
+                this.buttonLoading = false;
+            });
+        },
+        /**
          * 格式化马匹名称
          */
         formatHorseName(item) {
             return item.horse_name;
         },
         /**
-         * 新增马匹
+         * 新建马匹，可以连续创建待添加马匹
          */
-        addHorse() {
-            this.horseInfo.push({
-                id: new Date().getTime(),
-                horse_name: '马匹_' + parseFloat(this.horseInfo.length + 1),
+        createHorse() {
+            this.raceDetail.horse_info.push({
+                horse_id: new Date().getTime(),
+                horse_name: '马匹_' + parseFloat(this.raceDetail.horse_info.length + 1),
                 horse_status: 0,
                 head_limit: 100,
                 foot_limit: 100,
@@ -271,10 +343,10 @@ export default {
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
-                for (let index = 0; index < this.horseInfo.length; index++) {
-                    const element = this.horseInfo[index];
-                    if (element.id === this.horseItem.id) {
-                        this.horseInfo.splice(index, 1);
+                for (let index = 0; index < this.raceDetail.horse_info.length; index++) {
+                    const element = this.raceDetail.horse_info[index];
+                    if (element.horse_id === this.horseItem.horse_id) {
+                        this.raceDetail.horse_info.splice(index, 1);
                         break;
                     }
                 }
@@ -301,10 +373,10 @@ export default {
          * 确认修改
          */
         confirmModify() {
-            for (let index = 0; index < this.horseInfo.length; index++) {
-                const element = this.horseInfo[index];
-                if (element.id === this.horseItem.id) {
-                    this.horseInfo[index] = this.horseItem;
+            for (let index = 0; index < this.raceDetail.horse_info.length; index++) {
+                const element = this.raceDetail.horse_info[index];
+                if (element.horse_id === this.horseItem.horse_id) {
+                    this.raceDetail.horse_info[index] = this.horseItem;
                     break;
                 }
             }
@@ -315,7 +387,7 @@ export default {
     computed: {
         statusText() {
             let status = [
-                '新创建',
+                '未发布',
                 '已发布',
                 '已结束'
             ];

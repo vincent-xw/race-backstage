@@ -44,7 +44,8 @@
         el-row.race-container
             el-table(
                 :data='raceData',
-                v-loading='loading'
+                v-loading='loading',
+                @row-click='getDetail'
             )
                 el-table-column(
                     align='center',
@@ -192,6 +193,17 @@ export default {
                 });
             }).catch(() => {
                 
+            });
+        },
+        /**
+         * 跳转详情
+         */
+        getDetail(row, event, column) {
+            this.$router.push({
+                name: 'raceDetail',
+                params: {
+                    detailId: row.race_id
+                }
             });
         }
     }
