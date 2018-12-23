@@ -14,76 +14,186 @@
                         el-date-picker(
                             v-model="form.date",
                             type='daterange',
+                            value-format='timestamp',
                             range-separator='至',
                             start-placeholder='开始日期',
                             end-placeholder='结束日期'
                         )
                     el-form-item(label='联赛归属')
-                        el-select(
-                            v-model="form.division",
-                            placeholder='请选择联赛赛区'
-                        )
+                        league-list(:form='form')
                     el-form-item(label='比赛类型')
                         el-select(
                             v-model="form.type",
                             placeholder='请选择比赛类型'
                         )
+                            el-option(
+                                label="未开始",
+                                value="0"
+                            )
+                            el-option(
+                                label="已发布",
+                                value="1"
+                            )
+                            el-option(
+                                label="已结束",
+                                value="3"
+                            )
                     el-form-item
-                        el-button(type='primary') 搜索
-                        el-button(type='primary') 创建比赛
+                        el-button(type='primary', @click="getRaceList") 搜索
+                        el-button(type='text', @click="gotoCreateRace") 创建比赛
         el-row.race-container
             el-table(
-                :data='raceData'
+                :data='raceData',
+                v-loading='loading'
             )
                 el-table-column(
-                    prop='id',
+                    align='center',
+                    prop='race_id',
                     label='#'
                 )
                 el-table-column(
-                    prop='division',
+                    align='center',
+                    prop='league_name',
                     label='联赛归属'
                 )
                 el-table-column(
-                    prop='raceTime',
-                    label='比赛时间'
+                    align='center',
+                    prop='race_time',
+                    label='比赛时间',
+                    :formatter='timeFormatter'
                 )
                 el-table-column(
-                    prop='createdTime',
-                    label='创建时间'
+                    align='center',
+                    prop='created_time',
+                    label='创建时间',
+                    :formatter='timeFormatter'
                 )
                 el-table-column(
-                    prop='totalBet',
-                    label='总投注'
-                )
-                el-table-column(
-                    prop='totalWin',
-                    label='总盈利'
-                )
-                el-table-column(
-                    prop='playerTotalWin',
-                    label='玩家总盈利'
-                )
-                el-table-column(
-                    prop='raceStatus',
+                    align='center',
+                    prop='race_status',
                     label='比赛状态'
                 )
+                el-table-column(
+                    align='center',
+                    prop='',
+                    label='操作'
+                )
+                    template(
+                        slot-scope='scope'
+                    )
+                        el-button(type='text', @click='delRace(scope.row)') 删除
             el-pagination(
                 class='race-pagination'
                 layout='prev, pager, next',
-                :total='50'
-            )
-                  
+                :page-count='pageSize',
+                :current-page.sync='currentPage',
+                @current-change='getRaceList'
+            ) 
 </template>
 <script>
+import leagueList from '@/components/leagueList/leagueList';
+import mixins from '@/public/mixins/mixins'
 export default {
+    mixins: [mixins],
     data() {
         return {
-            form: {},
-            raceData: []
+            form: {
+                date: [
+                    new Date().getTime() - 86400000,
+                    new Date().getTime()
+                ],
+                leagueId: '',
+                type: ''
+            },
+            raceData: [],
+            pageSize: 1,
+            currentPage: 1,
+            loading: false
         };
     },
+    components: {
+        leagueList
+    },
+    mounted() {
+        this.getRaceList();
+    },
     methods: {
-
+        /**
+         * 获取比赛列表
+         */
+        getRaceList() {
+            this.loading = true;
+            let data = {
+                start_time: this.form.date[0],
+                end_time: this.form.date[1],
+                league_id: this.form.leagueId || '',
+                race_status: this.form.race_status,
+                page_no: this.currentPage
+            };
+            for (const item in data) {
+                if (data[item] === '') {
+                    delete data[item];
+                }
+            }
+            this.$axios.get('api/backstage/race/list' + '?' + this.$qs.stringify(data))
+            .then(res => {
+                this.loading = false;
+                if (res.data.status === 0) {
+                    this.raceData = res.data.data.list_data;
+                    this.pageSize = res.data.data.page_count;
+                    this.currentPage = +res.data.data.page_no || 1;
+                }
+                else {
+                    this.$message.error(res.data.msg);
+                }
+            })
+            .catch(err => {
+                this.loading = false;
+            });
+        },
+        /**
+         * 跳转创建比赛列表
+         */
+        gotoCreateRace() {
+            this.$router.push({
+                name: 'raceDetail',
+                params: {
+                    detailId: 'created'
+                }
+            });
+        },
+        /**
+         * 删除比赛
+         */
+        delRace(item) {
+            this.$confirm('此操作将删除比赛, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.$axios.post('/api/backstage/race/delete', {
+                    race_id: item.race_id
+                })
+                .then(res => {
+                    let content = res.data;
+                    if (content.status === 0) {
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功!'
+                        });
+                        this.getRaceList();
+                    }
+                    else {
+                        this.$message({
+                            type: 'error',
+                            message: content.msg || '删除失败'
+                        });
+                    }
+                });
+            }).catch(() => {
+                
+            });
+        }
     }
 };
 </script>

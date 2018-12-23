@@ -73,137 +73,146 @@
 
 </template>
 <script>
-  export default {
-    data() {
-      const validatePass = (rule, value, callback) => {
-        if (!value) {
-          callback(new Error('不能为空'));
-        }
-      };
+export default {
+  data() {
+    const validatePass = (rule, value, callback) => {
+      if (!value) {
+        callback(new Error("不能为空"));
+      }
+    };
 
-      return {
-        agentData: [],
-        showDialog: false,
-        form: {
-          agent_name: undefined,
-          agent_password: undefined,
-          agent_phone: undefined,
-          agent_wechat: undefined,
-          agent_remark: undefined,
-        },
-        addLoading: false,
-        dialogType: 'created',
-        rules: {
-          agent_name: [ { validator: validatePass, trigger: 'blur' } ],
-          agent_password: [ { validator: validatePass, trigger: 'blur' } ],
-          agent_phone: [ { validator: validatePass, trigger: 'blur' } ],
-          agent_wechat: [ { validator: validatePass, trigger: 'blur' } ],
-          agent_remark: [ { validator: validatePass, trigger: 'blur' } ],
-        }
-      };
-    },
-    methods: {
-      /**
-       * 删除代理
-       * @param index 行id
-       * @param { id } 行数据中结构赋值id
-       * */
-      delAgent(index, {id}) {
-        this.agentData[index].delLoading = true;
-        const params = {id};
-        console.log(params);
-        this.$axios.post('/api/backstage/agent/delete', params).then(res => {
+    return {
+      agentData: [],
+      showDialog: false,
+      form: {
+        agent_name: undefined,
+        agent_password: undefined,
+        agent_phone: undefined,
+        agent_wechat: undefined,
+        agent_remark: undefined
+      },
+      addLoading: false,
+      dialogType: "created",
+      rules: {
+        agent_name: [{ validator: validatePass, trigger: "blur" }],
+        agent_password: [{ validator: validatePass, trigger: "blur" }],
+        agent_phone: [{ validator: validatePass, trigger: "blur" }],
+        agent_wechat: [{ validator: validatePass, trigger: "blur" }],
+        agent_remark: [{ validator: validatePass, trigger: "blur" }]
+      }
+    };
+  },
+  methods: {
+    /**
+     * 删除代理
+     * @param index 行id
+     * @param { id } 行数据中结构赋值id
+     * */
+    delAgent(index, { id }) {
+      this.agentData[index].delLoading = true;
+      const params = { id };
+      console.log(params);
+      this.$axios
+        .post("/api/backstage/agent/delete", params)
+        .then(res => {
           if (res.dat.status === 0) {
             this.getAgentList();
           }
-        }).catch(err => {
-          console.log(err);
         })
-      },
-      /**
-       * 点击确认
-       * */
-      clickConfirm() {
-        if (this.checkFormEmpty()) {
-            return;
-        }
-        this.addLoading = true;
-        const params = {
-          ...this.form,
-        };
-        console.log(params);
-        this.$axios.post(`/api/backstage/agent/${this.dialogType}`, params).then(res => {
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    /**
+     * 点击确认
+     * */
+    clickConfirm() {
+      if (this.checkFormEmpty()) {
+        return;
+      }
+      this.addLoading = true;
+      const params = {
+        ...this.form
+      };
+      console.log(params);
+      this.$axios
+        .post(`/api/backstage/agent/${this.dialogType}`, params)
+        .then(res => {
           if (res.data.status === 0) {
             this.getAgentList();
             this.closeDialog();
           }
-        }).catch(() => {
+        })
+        .catch(() => {
           this.addLoading = false;
         });
-      },
-      /**
-       * 关闭dialog
-       * */
-      closeDialog() {
-        this.form = {};
-        this.showDialog = false;
-        this.addLoading = false;
-      },
-      /**
-       * 检验this.form 里面是否有数据
-       * */
-      checkFormEmpty(data = this.form) {
-//        return !(Object.keys(data).filter(item => !!data[item]).length > 0);
-        return !(Object.keys(data).length > 0);
-      },
-      /**
-       *  代理item点击
-       * */
-      itemClick(row) {
-        this.form = row;
-        this.showDialog = true;
-        this.dialogType = 'update';
-      },
-      addAgentClick() {
-        this.form = {};
-        this.showDialog = true;
-        this.dialogType = 'created';
-      },
-      /**
-       * 获得代理列表
-       * */
-      getAgentList() {
-        this.$axios.get('/api/backstage/agent/list').then(res => {
+    },
+    /**
+     * 关闭dialog
+     * */
+    closeDialog() {
+      this.form = {};
+      this.showDialog = false;
+      this.addLoading = false;
+    },
+    /**
+     * 检验this.form 里面是否有数据
+     * */
+    checkFormEmpty(data = this.form) {
+      //        return !(Object.keys(data).filter(item => !!data[item]).length > 0);
+      return !(Object.keys(data).length > 0);
+    },
+    /**
+     *  代理item点击
+     * */
+    itemClick(row) {
+      this.form = row;
+      this.showDialog = true;
+      this.dialogType = "update";
+    },
+    addAgentClick() {
+      this.form = {};
+      this.showDialog = true;
+      this.dialogType = "created";
+    },
+    /**
+     * 获得代理列表
+     * */
+    getAgentList() {
+      this.$axios
+        .get("/api/backstage/agent/list")
+        .then(res => {
           if (res.data.status === 0) {
             this.agentData = res.data.data.agent_list.map(item => {
               item.delLoading = false;
               return item;
             });
           }
-        }).catch(err => {
-          console.log(err);
         })
-      }
-    },
-    computed: {
-      getDialogTitle() {
-        return `${this.dialogType === 'update' ? '修改' : '新增'}代理`
-      }
-    },
-    created() {
-      this.getAgentList();
+        .catch(err => {
+          console.log(err);
+        });
     }
-  };
+  },
+  computed: {
+    getDialogTitle() {
+      return `${this.dialogType === "update" ? "修改" : "新增"}代理`;
+    }
+  },
+  created() {
+    this.getAgentList();
+  }
+};
 </script>
 <style lang="less">
-    .agent-container {
-        padding: 10px;
-        border-radius: 4px;
-        background: #ffffff;
-        margin-bottom: 10px;
-        .agent-setting {
-            text-align: right;
-        }
-    }
+.agent-container {
+  padding: 10px;
+  border-radius: 4px;
+  background: #ffffff;
+  margin-bottom: 10px;
+  .agent-setting {
+    text-align: right;
+  }
+}
 </style>
 
