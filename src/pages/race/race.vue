@@ -45,7 +45,7 @@
             el-table(
                 :data='raceData',
                 v-loading='loading',
-                @row-click='getDetail'
+                @cell-click='getDetail'
             )
                 el-table-column(
                     align='center',
@@ -83,6 +83,7 @@
                         slot-scope='scope'
                     )
                         el-button(type='text', @click='delRace(scope.row)') 删除
+                        el-button(type='text', v-if="scope.row.race_status == 0", @click="startRace(scope.row)", @loading='startLoading') 发布比赛
             el-pagination(
                 class='race-pagination'
                 layout='prev, pager, next',
@@ -93,7 +94,7 @@
 </template>
 <script>
 import leagueList from '@/components/leagueList/leagueList';
-import mixins from '@/public/mixins/mixins'
+import mixins from '@/public/mixins/mixins';
 export default {
     mixins: [mixins],
     data() {
@@ -109,7 +110,9 @@ export default {
             raceData: [],
             pageSize: 1,
             currentPage: 1,
-            loading: false
+            loading: false,
+            startLoading: false,
+            endLoading: false
         };
     },
     components: {
@@ -199,11 +202,37 @@ export default {
          * 跳转详情
          */
         getDetail(row, event, column) {
+            if (event.property === undefined) {
+                return;
+            }
             this.$router.push({
                 name: 'raceDetail',
                 params: {
                     detailId: row.race_id
                 }
+            });
+        },
+        /**
+         * 开始发布比赛
+         */
+        startRace(raceDetail) {
+            this.startLoading = true;
+            this.$axios.post('/api/backstage/race/start', {
+                race_id: raceDetail.race_id
+            })
+            .then(res => {
+                let startLoading = false;
+                let content = res.data;
+                if (content.status === 0) {
+                    this.$message.success('操作成功');
+                    this.getRaceList();
+                }
+                else {
+                    this.$message.error(content.msg || '操作失败');
+                }
+            })
+            .catch(err => {
+                this.startLoading = false;
             });
         }
     }

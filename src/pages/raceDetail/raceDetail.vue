@@ -3,9 +3,8 @@
         el-row.race-container
             el-col(:span='24')
                 h2 比赛详情 - {{statusText}}
-                    el-button(type='text', v-if="raceDetail.race_status == 0") 发布比赛
-                    el-button(type='text', v-if="raceDetail.race_status == 1") 结束比赛
-                    el-button(type='text', v-if="raceDetail.race_status == 2") 发布成绩
+                    el-button(type='text', v-if="raceDetail.race_status == 3") 发布成绩
+                    el-button(type='text', v-if="raceDetail.race_status == 2", @click="endRace", @loading='endLoading') 结束比赛
                 el-row
                     el-alert(type='error', v-if="raceDetail.race_status == 1" title='已发布的比赛如需更新需要分开更新比赛信息及马匹信息，马匹信息更新请点击具体马匹')
             el-col(:span='24')
@@ -100,25 +99,33 @@
                         el-button(type='text' @click="createHorse" v-if="raceDetail.race_status <= 0") 新建马匹
                     el-form-item(
                         label='赔率设置',
-                        v-if="raceDetail.race_status == 2"
+                        v-if="raceDetail.race_status == 1"
                     )
-                        el-col(:span='11')
+                        el-col(:span='1')
+                            span 头赔率
+                        el-col(:span='10')
                             el-input(
                                 v-model="raceDetail.head_odds",
                                 placeholder='请输入头赔率',
                                 width='49%'
                             )
                         el-col(:span='1') &nbsp;
-                        el-col(:span='11')
+                        el-col(:span='1') 
+                            span 脚赔率
+                        el-col(:span='10')
                             el-input(
                                 v-model="raceDetail.foot_odds",
                                 placeholder='请输入脚赔率',
                                 width='49%'
                             )
+                    el-form-item(
+                        label='',
+                        v-if="raceDetail.race_status == 1"
+                    )
+                        el-button(type='text', @click='submitOdds', :loading='oddsLoading') 提交赔率
                     el-form-item
                         el-button(type='text', v-if="raceDetail.race_status == -1" @click='saveRaceInfo' :loading='buttonLoading') 创建比赛信息
                         el-button(type='text', v-if="raceDetail.race_status == 0" @click='updateRaceInfo' :loading='buttonLoading') 更新比赛信息
-                        el-button(type='text', v-if="raceDetail.race_status == 2") 更新比赛赔率
         el-row.race-container
             el-col(:span='24')
                 h2 投注情况
@@ -184,17 +191,19 @@ export default {
             // 接收联赛名称
             league_name: '',
             buttonLoading: false,
-            raceDetailLoading: false
+            raceDetailLoading: false,
+            oddsLoading: false,
+            detailId: -1
         };
     },
     components: {
         leagueList
     },
     created() {
-        let {detailId} = this.$route.params;
-        this.raceDetail.race_status = detailId === 'created' ? 0 : 1;
-        if (detailId !== 'created' || detailId !== 0) {
-            this.getRaceDetail(detailId);
+        this.detailId = this.$route.params.detailId;
+        this.raceDetail.race_status = this.detailId === 'created' ? 0 : 1;
+        if (this.detailId !== 'created' || this.detailId !== 0) {
+            this.getRaceDetail(this.detailId);
         }
     },
     methods: {
@@ -381,6 +390,53 @@ export default {
                 }
             }
             this.dialogVisible = false;
+        },
+        /**
+         * 结束比赛
+         */
+        endRace() {
+            this.endLoading = true;
+            this.$axios.post('/api/backstage/race/end', {
+                race_id: this.raceDetail.race_id
+            })
+            .then(res => {
+                let endLoading = false;
+                let content = res.data;
+                if (content.status === 0) {
+                    this.$message.success('操作成功');
+                    this.getRaceList();
+                }
+                else {
+                    this.$message.error(content.msg || '操作失败');
+                }
+            })
+            .catch(err => {
+                this.endLoading = false;
+            });
+        },
+        /**
+         * 提交赔率
+         */
+        submitOdds() {
+            this.oddsLoading = true;
+            this.$axios.post('/api/backstage/race/setOdds', {
+                race_id: this.raceDetail.race_id,
+                head_odds: this.raceDetail.head_odds * 10,
+                foot_odds: this.raceDetail.foot_odds * 10
+            })
+            .then(res => {
+                this.oddsLoading = false;
+                let content = res.data;
+                if (content.status === 0) {
+                    this.$message.success('设置成功');
+                    this.getRaceDetail(this.detailId);
+                    return;
+                }
+                this.$message.error('设置失败');
+            })
+            .catch(err => {
+                this.oddsLoading = false;
+            });
         }
 
     },
@@ -389,7 +445,8 @@ export default {
             let status = [
                 '未发布',
                 '已发布',
-                '已结束'
+                '已结束',
+                '待发布成绩'
             ];
             let statusIndex = this.raceDetail.race_status || 0;
             return status[statusIndex];
