@@ -72,7 +72,8 @@
                 el-table-column(
                     align='center',
                     prop='race_status',
-                    label='比赛状态'
+                    label='比赛状态',
+                    :formatter='raceStatusFromatter'
                 )
                 el-table-column(
                     align='center',
@@ -142,13 +143,15 @@ export default {
             this.$axios.get('api/backstage/race/list' + '?' + this.$qs.stringify(data))
             .then(res => {
                 this.loading = false;
-                if (res.data.status === 0) {
-                    this.raceData = res.data.data.list_data;
-                    this.pageSize = res.data.data.page_count;
-                    this.currentPage = +res.data.data.page_no || 1;
+                let content = res.data;
+                if (content.status === 0) {
+                    let listData = content.data.list_data;
+                    this.raceData = (listData instanceof Array) ?  listData : [listData];
+                    this.pageSize = content.data.page_count;
+                    this.currentPage = +content.data.page_no || 1;
                 }
                 else {
-                    this.$message.error(res.data.msg);
+                    this.$message.error(content.msg);
                 }
             })
             .catch(err => {

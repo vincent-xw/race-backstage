@@ -4,9 +4,8 @@
             el-col(:span='24')
                 h2 比赛详情 - {{statusText}}
                     el-button(type='text', v-if="raceDetail.race_status == 3") 发布成绩
-                    el-button(type='text', v-if="raceDetail.race_status == 2", @click="endRace", @loading='endLoading') 结束比赛
+                    el-button(type='text', v-if="raceDetail.race_status == 2", @click="endRace", :loading='endLoading') 结束比赛
                 el-row
-                    el-alert(type='error', v-if="raceDetail.race_status == 1" title='已发布的比赛如需更新需要分开更新比赛信息及马匹信息，马匹信息更新请点击具体马匹')
             el-col(:span='24')
                 el-form(
                     ref='form',
@@ -48,6 +47,7 @@
                                 )
                                     el-input(
                                         v-model="horseItem.horse_name",
+                                        :disabled='raceDetail.race_status != 0',
                                         placeholder='请输入马匹名称'
                                     )
                                 el-form-item(
@@ -55,6 +55,7 @@
                                 )
                                     el-input(
                                         v-model="horseItem.head_limit",
+                                        :disabled='raceDetail.race_status != 0',
                                         placeholder='请输入头限额'
                                     )
                                 el-form-item(
@@ -62,6 +63,7 @@
                                 )
                                     el-input(
                                         v-model="horseItem.foot_limit",
+                                        :disabled='raceDetail.race_status != 0',
                                         placeholder='请输入脚限额'
                                     )
                                 el-form-item(
@@ -70,6 +72,7 @@
                                     el-select(
                                         :width='170',
                                         v-model="horseItem.horse_status",
+                                        :disabled='raceDetail.race_status != 0',
                                         placeholder='请选择马匹状态'
                                     )
                                         el-option(
@@ -89,12 +92,14 @@
                                         placeholder='请输入马匹成绩'
                                     )
                             br
-                            el-row(v-if="raceDetail.race_status <= 1")
+                            el-row(v-if="raceDetail.race_status == 0")
                                 el-col(:span='11', align="center")
                                     el-button(type='primary', @click="confirmModify") 确定
                                 el-col(:span='11', align="center")
                                     el-button(type='danger', @click="delHorse") 删除
-                    
+                            el-row(v-if="raceDetail.race_status == 2")
+                                el-col(:span='24', align="center")
+                                    el-button(type='primary', :loading="updateScoreLoading", @click="updateHorseScore") 发布成绩
                     el-form-item
                         el-button(type='text' @click="createHorse" v-if="raceDetail.race_status <= 0") 新建马匹
                     el-form-item(
@@ -193,6 +198,8 @@ export default {
             buttonLoading: false,
             raceDetailLoading: false,
             oddsLoading: false,
+            updateScoreLoading: false,
+            endLoading: false,
             detailId: -1
         };
     },
@@ -328,7 +335,14 @@ export default {
          * 格式化马匹名称
          */
         formatHorseName(item) {
-            return item.horse_name;
+            let name = item.horse_name;
+            if (item.horse_score !== 0) {
+                name += '-第' + item.horse_score + '名';
+            }
+            if (item.horse_status === 1) {
+                name += '-不可参赛';
+            }
+            return name;
         },
         /**
          * 新建马匹，可以连续创建待添加马匹
@@ -436,6 +450,31 @@ export default {
             })
             .catch(err => {
                 this.oddsLoading = false;
+            });
+        },
+        /**
+         * 更新马匹成绩
+         */
+        updateHorseScore() {
+            this.updateScoreLoading = true;
+            let data = {
+                horse_score: this.horseItem.horse_score,
+                horse_id: this.horseItem.horse_id,
+                race_id: this.raceDetail.race_id
+            };
+            this.$axios.post('/api/backstage/race/horse/setScore', data)
+            .then(res => {
+                this.updateScoreLoading = false;
+                let content = res.data;
+                if (content.status === 0) {
+                    this.$message.success('发布成功，您可以随时重复发布');
+                    this.dialogVisible = false;
+                    return;
+                }
+                this.$message.error(content.msg || '发布失败');
+            })
+            .catch(err => {
+                this.updateScoreLoading = false;
             });
         }
 
