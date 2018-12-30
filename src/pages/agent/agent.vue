@@ -26,10 +26,6 @@
                 label='其他联系方式'
                 )
                 el-table-column(
-                prop='status',
-                label='状态'
-                )
-                el-table-column(
                 prop='agent_remark',
                 label='备注'
                 )
@@ -148,13 +144,12 @@ export default {
         }
         this.addLoading = true;
         const params = {
-          ...this.form,
+          ...this.form
         };
-        console.log(params);
         this.$axios.post(`/api/backstage/agent/${this.dialogType}`, params).then(res => {
             this.addLoading = false;
             if (res.data.status === 0) {
-                this.$message.success('创建成功');
+                this.$message.success('操作成功');
                 this.getAgentList();
                 this.closeDialog();
                 return;
