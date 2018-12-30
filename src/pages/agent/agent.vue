@@ -94,7 +94,7 @@ export default {
         },
         addLoading: false,
         loading: false,
-        dialogType: "created",
+        dialogType: "add",
         rules: {
           agent_name: [ { validator: validatePass, trigger: "blur" } ],
           agent_password: [ { validator: validatePass, trigger: "blur" } ],
@@ -185,7 +185,7 @@ export default {
     addAgentClick() {
       this.form = {};
       this.showDialog = true;
-      this.dialogType = "created";
+      this.dialogType = "add";
     },
     /**
      * 获得代理列表
