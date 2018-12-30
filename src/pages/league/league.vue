@@ -23,12 +23,8 @@
                 label='创建时间'
                 )
                 el-table-column(
-                prop='uodated_time',
+                prop='updated_time',
                 label='修改时间'
-                )
-                el-table-column(
-                prop='league_status',
-                label='状态'
                 )
                 el-table-column(
                     prop='league_remark',
@@ -76,7 +72,7 @@
         raceData: [],
         showDialog: false,
         addLoading: false,
-        dialogType: 'created',
+        dialogType: 'add',
         loading: false
       };
     },
@@ -96,7 +92,6 @@
         if (this.dialogType === 'update') {
           params.league_id = this.form.league_id;
         }
-        console.log(params);
         this.$axios.post(`/api/backstage/league/${this.dialogType}`, params).then(res => {
           if (res.data.status === 0) {
             this.getLeagueList();
@@ -120,7 +115,7 @@
           this.raceData[index].delLoading = true;
           const params = {league_id};
           console.log(params);
-          this.$axios.post('/api/backstage/agent/delete', params).then(res => {
+          this.$axios.post('/api/backstage/league/delete', params).then(res => {
             if (res.data.status === 0) {
               this.$message({
                 type: 'success',
@@ -147,7 +142,7 @@
           if (res.data.status === 0) {
             this.raceData = res.data.data.league_list.map(item => {
               item.created_time = new Date(+item.created_time).toLocaleString();
-              item.uodated_time = new Date(+item.uodated_time).toLocaleString();
+              item.updated_time = new Date(+item.updated_time).toLocaleString();
               item.delLoading = false;
               return item;
             })
@@ -177,12 +172,12 @@
       addLeagueClick() {
         this.form = {};
         this.showDialog = true;
-        this.dialogType = 'created';
+        this.dialogType = 'add';
       },
     },
     computed: {
       getDialogTitle() {
-        return `${this.dialogType === 'created' ? '新增' : '修改'}赛区`
+        return `${this.dialogType === 'add' ? '新增' : '修改'}赛区`
       }
     },
     created() {
