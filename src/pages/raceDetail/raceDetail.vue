@@ -142,8 +142,12 @@
                     label='#'
                 )
                 el-table-column(
-                    prop='agent',
+                    prop='username',
                     label='代理'
+                )
+                el-table-column(
+                    prop='horse_name',
+                    label='投注马匹'
                 )
                 el-table-column(
                     prop='bet_foot',
@@ -158,20 +162,14 @@
                     label='投注时间'
                 )
                 el-table-column(
+                    prop='all_count',
+                    label='总盈利',
+                    :formatter='formatScore'
+                )
+                el-table-column(
                     prop='win_count',
-                    label='总盈利'
-                )
-                el-table-column(
-                    prop='',
-                    label='玩家总盈利'
-                )
-                    template(
-                        slot-scope='scope'
-                    )
-                        span {{scope.row.head_win_count + scope.row.foot_win_count}}
-                el-table-column(
-                    prop='raceStatus',
-                    label='比赛状态'
+                    label='玩家总盈利',
+                    :formatter='formatScore'
                 )
                 el-table-column(
                     prop='',
@@ -423,23 +421,30 @@ export default {
          * 结束比赛
          */
         endRace() {
-            this.endLoading = true;
-            this.$axios.post('/api/backstage/race/end', {
-                race_id: this.raceDetail.race_id
-            })
-            .then(res => {
-                let endLoading = false;
-                let content = res.data;
-                if (content.status === 0) {
-                    this.$message.success('操作成功');
-                    this.getRaceList();
-                }
-                else {
-                    this.$message.error(content.msg || '操作失败');
-                }
-            })
-            .catch(err => {
-                this.endLoading = false;
+            this.$confirm('结束比赛以后就不可以继续单独设置马匹成绩了, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.endLoading = true;
+                this.$axios.post('/api/backstage/race/end', {
+                    race_id: this.raceDetail.race_id
+                })
+                .then(res => {
+                    let endLoading = false;
+                    let content = res.data;
+                    if (content.status === 0) {
+                        this.$message.success('操作成功');
+                        this.getRaceDetail(this.raceDetail.race_id);
+                        this.getRaceList();
+                    }
+                    else {
+                        this.$message.error(content.msg || '操作失败');
+                    }
+                })
+                .catch(err => {
+                    this.endLoading = false;
+                });
             });
         },
         /**
@@ -483,6 +488,7 @@ export default {
                 if (content.status === 0) {
                     this.$message.success('发布成功，您可以随时重复发布');
                     this.dialogVisible = false;
+                    this.getRaceDetail(this.raceDetail.race_id);
                     return;
                 }
                 this.$message.error(content.msg || '发布失败');
@@ -495,11 +501,7 @@ export default {
          * 发布成绩
          */
         releaseSocre() {
-            this.$confirm('发布成绩以后就不可以继续单独设置马匹成绩了, 是否继续?', '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning'
-            }).then(() => {
+            
                 this.releaseLoading = true;
                 let data = {
                     race_id: this.raceDetail.race_id
@@ -521,7 +523,6 @@ export default {
                 .catch(err => {
                     this.updateScoreLoading = false;
                 });
-            });
         }
     },
     computed: {

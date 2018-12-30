@@ -10,14 +10,18 @@ export default {
         timeFormatter(row, column, cellValue, index) {
             return new Date(cellValue).toLocaleDateString();
         },
-        initListData(data){
+        initListData(data) {
             if (!(data instanceof Array)) {
                 data = [data];
             }
             return data;
         },
+        // 格式化成绩
+        formatScore(row, column, cellValue, index) {
+            return cellValue / 10;
+        },
         // 比赛状态格式化
-        raceStatusFromatter (row, column, cellValue, index) {
+        raceStatusFromatter(row, column, cellValue, index) {
             if (cellValue === 0) {
                 return '未发布';
             }
