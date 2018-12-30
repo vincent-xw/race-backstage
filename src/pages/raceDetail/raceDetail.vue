@@ -3,7 +3,7 @@
         el-row.race-container
             el-col(:span='24')
                 h2 比赛详情 - {{statusText}}
-                    el-button(type='text', v-if="raceDetail.race_status == 3") 发布成绩
+                    el-button(type='text', v-if="raceDetail.race_status == 3", @click="releaseSocre", :loading='releaseLoading') 发布成绩
                     el-button(type='text', v-if="raceDetail.race_status == 2", @click="endRace", :loading='endLoading') 结束比赛
                 el-row
             el-col(:span='24')
@@ -146,46 +146,59 @@
                     label='代理'
                 )
                 el-table-column(
-                    prop='betAmount',
-                    label='投注额'
+                    prop='bet_foot',
+                    label='投注头'
                 )
                 el-table-column(
-                    prop='betTime',
+                    prop='bet_head',
+                    label='投注脚'
+                )
+                el-table-column(
+                    prop='bet_time',
                     label='投注时间'
+                )
+                el-table-column(
+                    prop='win_count',
+                    label='总盈利'
+                )
+                el-table-column(
+                    prop='',
+                    label='玩家总盈利'
+                )
+                    template(
+                        slot-scope='scope'
+                    )
+                        span {{scope.row.head_win_count + scope.row.foot_win_count}}
+                el-table-column(
+                    prop='raceStatus',
+                    label='比赛状态'
                 )
                 el-table-column(
                     prop='',
                     label='操作'
                 )
-                    template(:solt-scope='scope')
+                    template(
+                        slot-scope='scope'
+                    )
                         el-button(
                             type='text',
                             size='mini'
                         )   删除
-                el-table-column(
-                    prop='totalWin',
-                    label='总盈利'
-                )
-                el-table-column(
-                    prop='playerTotalWin',
-                    label='玩家总盈利'
-                )
-                el-table-column(
-                    prop='raceStatus',
-                    label='比赛状态'
-                )
                   
 </template>
 <script>
 import leagueList from '@/components/leagueList/leagueList';
+import mixins from '@/public/mixins/mixins';
 export default {
+    mixins: [mixins],
     data() {
         return {
             // 比赛详情
             raceDetail: {
                 // 马匹信息数组
                 horse_info: [],
-                race_status: -1
+                race_status: -1,
+                bet_info: []
             },
             // 投注信息
             betData: [],
@@ -199,6 +212,7 @@ export default {
             raceDetailLoading: false,
             oddsLoading: false,
             updateScoreLoading: false,
+            releaseLoading: false,
             endLoading: false,
             detailId: -1
         };
@@ -227,7 +241,7 @@ export default {
                 let content = res.data;
                 if (content.status === 0) {
                     this.raceDetail = content.data;
-                    console.log(this.raceDetail);  
+                    this.raceDetail.bet_info = this.initListData(this.raceDetail.bet_info);
                     this.$message.success('请求成功');
                 }
                 else {
@@ -476,8 +490,39 @@ export default {
             .catch(err => {
                 this.updateScoreLoading = false;
             });
+        },
+        /**
+         * 发布成绩
+         */
+        releaseSocre() {
+            this.$confirm('发布成绩以后就不可以继续单独设置马匹成绩了, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.releaseLoading = true;
+                let data = {
+                    race_id: this.raceDetail.race_id
+                };
+                this.$axios.post('/api/backstage/race/score/release', data)
+                .then(res => {
+                    this.releaseLoading = false;
+                    let content = res.data;
+                    if (content.status === 0) {
+                        this.$message.success('发布成功');
+                        this.dialogVisible = false;
+                        this.$router.push({
+                            name: 'race'
+                        });
+                        return;
+                    }
+                    this.$message.error(content.msg || '发布失败');
+                })
+                .catch(err => {
+                    this.updateScoreLoading = false;
+                });
+            });
         }
-
     },
     computed: {
         statusText() {
@@ -485,7 +530,8 @@ export default {
                 '未发布',
                 '已发布',
                 '已结束',
-                '待发布成绩'
+                '待发布成绩',
+                '已发布成绩'
             ];
             let statusIndex = this.raceDetail.race_status || 0;
             return status[statusIndex];

@@ -146,7 +146,7 @@ export default {
                 let content = res.data;
                 if (content.status === 0) {
                     let listData = content.data.list_data;
-                    this.raceData = (listData instanceof Array) ?  listData : [listData];
+                    this.raceData = this.initListData(this.raceData);
                     this.pageSize = content.data.page_count;
                     this.currentPage = +content.data.page_no || 1;
                 }

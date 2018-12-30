@@ -10,6 +10,12 @@ export default {
         timeFormatter(row, column, cellValue, index) {
             return new Date(cellValue).toLocaleDateString();
         },
+        initListData(data){
+            if (!(data instanceof Array)) {
+                data = [data];
+            }
+            return data;
+        },
         // 比赛状态格式化
         raceStatusFromatter (row, column, cellValue, index) {
             if (cellValue === 0) {
