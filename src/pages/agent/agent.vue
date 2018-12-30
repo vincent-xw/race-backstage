@@ -3,10 +3,10 @@
         el-col(:span='24')
             h2 代理管理
             .agent-setting
-            el-button(type='primary' @click="showDialog = true") {{getDialogTitle}}
+            el-button(type='primary', @click="addAgentClick") 新增代理
             el-table(
-                v-loading="loading"
-                :data='agentData'
+                v-loading="loading",
+                :data='agentData',
                 @row-click="itemClick"
             )
                 el-table-column(
@@ -35,49 +35,43 @@
                     template(slot-scope="scope")
                         el-button(
                         size="mini"
-                        type="text"
-                        :loading="scope.row.delLoading"
+                        type="text",
+                        :loading="scope.row.delLoading",
                         @click.prevent.stop="delAgent(scope.$index, scope.row)"
                         ) 删除代理
         el-dialog(
-            title="新增代理"
-            :visible.sync="showDialog"
+            :title="getDialogTitle",
+            :visible.sync="showDialog",
             :close="closeDialog"
         )
             el-form(
-            v-model="form"
-            :rules="rules"
+            :model="form",
+            :rules="rules",
             ref="form"
             )
-                el-form-item(label="姓名" :label-width="'120px'" props="agent_name")
+                el-form-item(label="姓名", :label-width="'120px'", prop="agent_name")
                     el-input(v-model="form.agent_name")
-                el-form-item(label="密码" :label-width="'120px'" props="agent_password")
+                el-form-item(label="密码", :label-width="'120px'", prop="agent_password")
                     el-input(v-model="form.agent_password")
-                el-form-item(label="手机号码" :label-width="'120px'" props="agent_phone")
+                el-form-item(label="手机号码", :label-width="'120px'", prop="agent_phone")
                     el-input(v-model="form.agent_phone")
-                el-form-item(label="微信" :label-width="'120px'" props="agent_wechat")
+                el-form-item(label="微信", :label-width="'120px'", prop="agent_wechat")
                     el-input(v-model="form.agent_wechat")
-                el-form-item(label="备注" :label-width="'120px'" props="agent_remark")
+                el-form-item(label="备注", :label-width="'120px'", prop="agent_remark")
                     el-input(
-                        type="textarea"
-                        :autosize="{ minRows: 2, maxRows: 4}"
+                        type="textarea",
+                        :autosize="{ minRows: 2, maxRows: 4}",
                         placeholder="请输入内容"
                         v-model="form.agent_remark"
                     )
             div(slot="footer" class="dialog-footer")
                 el-button(@click="closeDialog") 取消
-                el-button(@click="clickConfirm" type="primary" :loading="addLoading") 确定
+                el-button(@click="clickConfirm('form')", type="primary", :loading="addLoading") 确定
 
 </template>
 <script>
 export default {
   data() {
-    const validatePass = (rule, value, callback) => {
-      if (!value) {
-        callback(new Error("不能为空"));
-      }
-    };
-
       return {
         agentData: [],
         showDialog: false,
@@ -92,11 +86,8 @@ export default {
         loading: false,
         dialogType: "add",
         rules: {
-          agent_name: [ { validator: validatePass, trigger: "blur" } ],
-          agent_password: [ { validator: validatePass, trigger: "blur" } ],
-          agent_phone: [ { validator: validatePass, trigger: "blur" } ],
-          agent_wechat: [ { validator: validatePass, trigger: "blur" } ],
-          agent_remark: [ { validator: validatePass, trigger: "blur" } ],
+          agent_name: [ { required: true, message: '请输入姓名', trigger: 'blur' } ],
+          agent_password: [ { required: true, message: '请输入密码', trigger: 'blur' } ],
         }
       };
     },
@@ -116,15 +107,13 @@ export default {
           const params = {id};
           console.log(params);
           this.$axios.post('/api/backstage/agent/delete', params).then(res => {
-            if (res.data.status === 0) {
+            this.$handleResponse(res.data.status, res.data.msg, () => {
               this.$message({
                 type: 'success',
                 message: '删除成功!'
               });
               this.getAgentList();
-              return;
-            }
-            this.$message.error(res.data.data.msg);
+            });
           }).catch(err => {
             console.log(err);
           })
@@ -136,28 +125,29 @@ export default {
         });
       },
       /**
-       * 点击确认
+       * 添加代理和更新代理 弹窗 点击确认
        * */
-      clickConfirm() {
-        if (this.checkFormEmpty()) {
-            return;
-        }
-        this.addLoading = true;
-        const params = {
-          ...this.form
-        };
-        this.$axios.post(`/api/backstage/agent/${this.dialogType}`, params).then(res => {
-            this.addLoading = false;
-            if (res.data.status === 0) {
+      clickConfirm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.addLoading = true;
+            const params = {
+              ...this.form
+            };
+            this.$axios.post(`/api/backstage/agent/${this.dialogType}`, params).then(res => {
+              this.addLoading = false;
+              this.$handleResponse(res.data.status, res.data.msg, () => {
                 this.$message.success('操作成功');
                 this.getAgentList();
                 this.closeDialog();
-                return;
-            }
-            this.$message.error(res.data.msg);
-        })
-        .catch(() => {
-          this.addLoading = false;
+              });
+            })
+              .catch(() => {
+                this.addLoading = false;
+              });
+          } else {
+            return false;
+          }
         });
     },
     /**
@@ -172,8 +162,7 @@ export default {
      * 检验this.form 里面是否有数据
      * */
     checkFormEmpty(data = this.form) {
-      //        return !(Object.keys(data).filter(item => !!data[item]).length > 0);
-      return !(Object.keys(data).length > 0);
+      return !(data.agent_name && data.agent_password);
     },
     /**
      *  代理item点击
@@ -196,12 +185,12 @@ export default {
       this.$axios
         .get("/api/backstage/agent/list")
         .then(res => {
-          if (res.data.status === 0) {
+          this.$handleResponse(res.data.status, res.data.msg, () => {
             this.agentData = res.data.data.agent_list.map(item => {
               item.delLoading = false;
               return item;
             });
-          }
+          });
           this.loading = false;
         })
         .catch(err => {

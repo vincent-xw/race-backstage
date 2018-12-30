@@ -20,7 +20,23 @@ Vue.prototype.$qs = qs;
 let router = new VueRouter({
     routes
 });
+Vue.prototype.$toast = function(text = '系统异常', options) {
+  const option = {
+    showClose: true,
+    message: text || '系统异常',
+    type: 'error',
+    ...options
+  };
+  this.$message(option);
+};
 
+Vue.prototype.$handleResponse = function(status, msg,callback) {
+  if (status === 0) {
+    callback && callback();
+  } else {
+    this.$toast(msg)
+  }
+};
 let store = new Vuex.Store(states);
 
 axiosConfig();
