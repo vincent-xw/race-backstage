@@ -1,6 +1,6 @@
 <template lang="pug">
     el-select(
-        v-model="form.leagueId",
+        v-model="form.league_id",
         placeholder='请选择联赛赛区',
         @change='emitName'
     )
@@ -16,12 +16,15 @@ export default {
     props: ['form'],
     data() {
         return {
-            leagueId: '',
+            league_id: '',
             leagueList: []
         };
     },
     created() {
         this.getLeague();
+    },
+    updated() {
+        this.emitName();
     },
     methods: {
         /**
@@ -45,7 +48,7 @@ export default {
             let league_name = '';
             for (let index = 0; index < this.leagueList.length; index++) {
                 const element = this.leagueList[index];
-                if (element.league_id === this.form.leagueId){
+                if (element.league_id === this.form.league_id){
                     league_name = element.league_name;
                     break;
                 }

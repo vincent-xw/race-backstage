@@ -40,6 +40,16 @@ export default () => {
         removePending(response.config);
         return response;
     }, function (error) {
+        if (error.message === 'Network Error') {
+            if (window.vm) {
+                window.vm.$message.error('请求失败，请检查网络并重试');
+            }
+        }
+        if (error.response.status === 500) {
+            if (window.vm) {
+                window.vm.$message.error('系统服务异常');
+            }
+        }
         if (error.response.status === 401) {
             location.href = '#/login?needLogin=1';
         }

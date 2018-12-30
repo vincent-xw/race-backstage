@@ -26,10 +26,6 @@
                 label='其他联系方式'
                 )
                 el-table-column(
-                prop='status',
-                label='状态'
-                )
-                el-table-column(
                 prop='agent_remark',
                 label='备注'
                 )
@@ -94,7 +90,7 @@ export default {
         },
         addLoading: false,
         loading: false,
-        dialogType: "created",
+        dialogType: "add",
         rules: {
           agent_name: [ { validator: validatePass, trigger: "blur" } ],
           agent_password: [ { validator: validatePass, trigger: "blur" } ],
@@ -126,7 +122,9 @@ export default {
                 message: '删除成功!'
               });
               this.getAgentList();
+              return;
             }
+            this.$message.error(res.data.data.msg);
           }).catch(err => {
             console.log(err);
           })
@@ -146,14 +144,17 @@ export default {
         }
         this.addLoading = true;
         const params = {
-          ...this.form,
+          ...this.form
         };
-        console.log(params);
         this.$axios.post(`/api/backstage/agent/${this.dialogType}`, params).then(res => {
-          if (res.data.status === 0) {
-            this.getAgentList();
-            this.closeDialog();
-          }
+            this.addLoading = false;
+            if (res.data.status === 0) {
+                this.$message.success('操作成功');
+                this.getAgentList();
+                this.closeDialog();
+                return;
+            }
+            this.$message.error(res.data.msg);
         })
         .catch(() => {
           this.addLoading = false;
@@ -185,7 +186,7 @@ export default {
     addAgentClick() {
       this.form = {};
       this.showDialog = true;
-      this.dialogType = "created";
+      this.dialogType = "add";
     },
     /**
      * 获得代理列表
