@@ -129,7 +129,7 @@
                     )
                         el-button(type='text', @click='submitOdds', :loading='oddsLoading') 提交赔率
                     el-form-item
-                        el-button(type='text', v-if="raceDetail.race_status == -1" @click='saveRaceInfo' :loading='buttonLoading') 创建比赛信息
+                        el-button(type='text', v-if="detailId == 'created'" @click='saveRaceInfo' :loading='buttonLoading') 创建比赛信息
                         el-button(type='text', v-if="raceDetail.race_status == 0" @click='updateRaceInfo' :loading='buttonLoading') 更新比赛信息
         el-row.race-container
             el-col(:span='24')
@@ -222,8 +222,8 @@ export default {
     },
     created() {
         this.detailId = this.$route.params.detailId;
-        this.raceDetail.race_status = this.detailId === 'created' ? 0 : 1;
-        if (this.detailId !== 'created' || this.detailId !== 0) {
+        this.raceDetail.race_status = this.detailId === 'created' ? -1 : 1;
+        if (this.detailId !== 'created') {
             this.getRaceDetail(this.detailId);
         }
     },
@@ -534,7 +534,7 @@ export default {
                 '已发布成绩'
             ];
             let statusIndex = this.raceDetail.race_status || 0;
-            return status[statusIndex];
+            return status[statusIndex] || '新创建';
         }
     }
 };
