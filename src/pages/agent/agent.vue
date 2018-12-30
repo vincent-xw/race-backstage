@@ -126,7 +126,9 @@ export default {
                 message: '删除成功!'
               });
               this.getAgentList();
+              return;
             }
+            this.$message.error(res.data.data.msg);
           }).catch(err => {
             console.log(err);
           })
@@ -150,10 +152,14 @@ export default {
         };
         console.log(params);
         this.$axios.post(`/api/backstage/agent/${this.dialogType}`, params).then(res => {
-          if (res.data.status === 0) {
-            this.getAgentList();
-            this.closeDialog();
-          }
+            this.addLoading = false;
+            if (res.data.status === 0) {
+                this.$message.success('创建成功');
+                this.getAgentList();
+                this.closeDialog();
+                return;
+            }
+            this.$message.error(res.data.msg);
         })
         .catch(() => {
           this.addLoading = false;

@@ -2,8 +2,8 @@
  * 混入对象，公共部分
  */
 export default {
-    data(){
-        return {}
+    data() {
+        return {};
     },
     methods: {
         // 时间格式化
