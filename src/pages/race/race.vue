@@ -39,7 +39,7 @@
                                 value="3"
                             )
                     el-form-item
-                        el-button(type='primary', @click="getRaceList") 搜索
+                        el-button(type='primary', @click="getRaceList", :loading='loading') 搜索
                         el-button(type='text', @click="gotoCreateRace") 创建比赛
         el-row.race-container
             el-table(
@@ -84,7 +84,7 @@
                         slot-scope='scope'
                     )
                         el-button(type='text', @click='delRace(scope.row)') 删除
-                        el-button(type='text', v-if="scope.row.race_status == 0", @click="startRace(scope.row)", @loading='startLoading') 发布比赛
+                        el-button(type='text', v-if="scope.row.race_status == 0", @click="startRace(scope.row)", :loading='startLoading') 发布比赛
             el-pagination(
                 class='race-pagination'
                 layout='prev, pager, next',

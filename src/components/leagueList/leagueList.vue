@@ -2,7 +2,8 @@
     el-select(
         v-model="form.league_id",
         placeholder='请选择联赛赛区',
-        @change='emitName'
+        @change='emitName',
+        :loading='leagueLoading'
     )
         el-option(
             v-for="item in leagueList",
@@ -17,7 +18,8 @@ export default {
     data() {
         return {
             league_id: '',
-            leagueList: []
+            leagueList: [],
+            leagueLoading: false
         };
     },
     created() {
@@ -31,14 +33,19 @@ export default {
          * 获取联赛列表
          */
         getLeague() {
+            this.leagueLoading = true;
             this.$axios.get('/api/backstage/league/list')
             .then(res => {
+                this.leagueLoading = false;
                 if (res.data.status === 0) {
                     this.leagueList = res.data.data.league_list;
                 }
                 else {
                     this.$message.error(res.data.msg);
                 }
+            })
+            .catch(err => {
+                this.leagueLoading = false;
             });
         },
         /**
