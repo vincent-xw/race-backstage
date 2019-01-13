@@ -106,20 +106,41 @@
                         label='赔率设置',
                         v-if="raceDetail.race_status == 1"
                     )
-                        el-col(:span='1')
-                            span 头赔率
-                        el-col(:span='10')
+                        el-col(:span='3')
+                            span 第一名头赔率
+                        el-col(:span='8')
                             el-input(
-                                v-model="raceDetail.head_odds",
+                                v-model="raceDetail.first_head_odds",
+                                type="number",
                                 placeholder='请输入头赔率',
                                 width='49%'
                             )
                         el-col(:span='1') &nbsp;
-                        el-col(:span='1') 
-                            span 脚赔率
-                        el-col(:span='10')
+                        el-col(:span='3') 
+                            span 第一名脚赔率
+                        el-col(:span='8')
                             el-input(
-                                v-model="raceDetail.foot_odds",
+                                v-model="raceDetail.first_foot_odds",
+                                type="number",
+                                placeholder='请输入脚赔率',
+                                width='49%'
+                            )
+                        el-col(:span='3')
+                            span 第二名脚赔率
+                        el-col(:span='8')
+                            el-input(
+                                v-model="raceDetail.second_foot_odds",
+                                type="number",
+                                placeholder='请输入头赔率',
+                                width='49%'
+                            )
+                        el-col(:span='1') &nbsp;
+                        el-col(:span='3') 
+                            span 第三名脚赔率
+                        el-col(:span='8')
+                            el-input(
+                                v-model="raceDetail.third_foot_odds",
+                                type="number",
                                 placeholder='请输入脚赔率',
                                 width='49%'
                             )
@@ -454,8 +475,10 @@ export default {
             this.oddsLoading = true;
             this.$axios.post('/api/backstage/race/setOdds', {
                 race_id: this.raceDetail.race_id,
-                head_odds: this.raceDetail.head_odds * 10,
-                foot_odds: this.raceDetail.foot_odds * 10
+                first_head_odds: this.raceDetail.first_head_odds * 10,
+                first_foot_odds: this.raceDetail.first_foot_odds * 10,
+                second_foot_odds: this.raceDetail.second_foot_odds * 10,
+                third_foot_odds: this.raceDetail.third_foot_odds * 10
             })
             .then(res => {
                 this.oddsLoading = false;
