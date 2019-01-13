@@ -260,6 +260,10 @@ export default {
                 let content = res.data;
                 if (content.status === 0) {
                     this.raceDetail = content.data;
+                    this.raceDetail.first_head_odds /= 10;
+                    this.raceDetail.first_foot_odds /= 10;
+                    this.raceDetail.second_foot_odds /= 10;
+                    this.raceDetail.third_foot_odds /= 10;
                     this.raceDetail.bet_info = this.initListData(this.raceDetail.bet_info);
                     this.$message.success('请求成功');
                 }
