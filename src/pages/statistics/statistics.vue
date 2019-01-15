@@ -28,7 +28,7 @@
                             placeholder='请选择比赛类型'
                         )
                     el-form-item
-                        el-button(type='primary') 搜索
+                        el-button(type='primary', @click="getData") 搜索
         el-row.statistics-container
             el-table(
                 :data='statisticsData'
@@ -74,11 +74,15 @@ export default {
     data() {
         return {
             form: {},
-            statisticsData: [],
+            statisticsData: []
         };
     },
     methods: {
+        getData() {
+            this.$axios.post('/api/backstage/stat', this.form).then(res => {
 
+            });
+        }
     }
 };
 </script>
