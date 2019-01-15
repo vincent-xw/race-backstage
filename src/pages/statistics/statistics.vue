@@ -15,7 +15,8 @@
                             type='daterange',
                             range-separator='至',
                             start-placeholder='开始日期',
-                            end-placeholder='结束日期'
+                            end-placeholder='结束日期',
+                            value-format='timestamp'
                         )
                     el-form-item(label='联赛归属')
                         el-select(
@@ -38,34 +39,27 @@
                     label='#'
                 )
                 el-table-column(
-                    prop='division',
+                    prop='league_id',
                     label='联赛归属'
                 )
                 el-table-column(
-                    prop='raceTime',
-                    label='比赛时间'
+                    prop='bet_time',
+                    label='投注时间'
                 )
                 el-table-column(
-                    prop='createdTime',
-                    label='创建时间'
-                )
-                el-table-column(
-                    prop='totalBet',
+                    prop='all_count',
                     label='总投注'
                 )
                 el-table-column(
-                    prop='totalWin',
+                    prop='win_count',
                     label='总盈利'
                 )
                 el-table-column(
-                    prop='playerTotalWin',
+                    prop='',
                     label='玩家总盈利'
                 )
-            el-pagination(
-                class='statistics-pagination'
-                layout='prev, pager, next',
-                :total='50'
-            )
+                    template(slot-scope = 'scope') {{scope.row.all_count - scope.row.win_count}}
+
                   
 
 </template>
@@ -81,6 +75,11 @@ export default {
         getData() {
             this.$axios.post('/api/backstage/stat', this.form).then(res => {
 
+                if (res.data.data.list instanceof Array) {
+                    this.statisticsData = res.data.data.list;
+                    return;
+                }
+                this.statisticsData = [res.data.data.list];
             });
         }
     }
