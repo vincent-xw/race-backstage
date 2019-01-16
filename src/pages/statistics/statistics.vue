@@ -13,21 +13,34 @@
                         el-date-picker(
                             v-model="form.date",
                             type='daterange',
+                            :unlink-panels='true',
                             range-separator='至',
                             start-placeholder='开始日期',
                             end-placeholder='结束日期',
                             value-format='timestamp'
                         )
                     el-form-item(label='联赛归属')
-                        el-select(
-                            v-model="form.division",
-                            placeholder='请选择联赛赛区'
-                        )
+                        league-list(:form='form', @getLeagueName="getLeagueName")
                     el-form-item(label='统计类型')
                         el-select(
                             v-model="form.type",
                             placeholder='请选择比赛类型'
                         )
+                            el-option(
+                                key="year",
+                                label="年",
+                                value="year"
+                            )
+                            el-option(
+                                key="month",
+                                label="月",
+                                value="month"
+                            )
+                            el-option(
+                                key="day",
+                                label="日",
+                                value="day"
+                            )
                     el-form-item
                         el-button(type='primary', @click="getData") 搜索
         el-row.statistics-container
@@ -64,23 +77,33 @@
 
 </template>
 <script>
+import leagueList from '@/components/leagueList/leagueList';
 export default {
     data() {
         return {
             form: {},
-            statisticsData: []
+            statisticsData: [],
+            league_name: ''
         };
+    },
+    components: {
+        leagueList
     },
     methods: {
         getData() {
             this.$axios.post('/api/backstage/stat', this.form).then(res => {
-
                 if (res.data.data.list instanceof Array) {
                     this.statisticsData = res.data.data.list;
                     return;
                 }
                 this.statisticsData = [res.data.data.list];
             });
+        },
+        /**
+         * 获取league_name
+         */
+        getLeagueName(name) {
+            this.league_name = name;
         }
     }
 };
