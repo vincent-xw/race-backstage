@@ -52,7 +52,7 @@
                     label='#'
                 )
                 el-table-column(
-                    prop='league_id',
+                    prop='league_name',
                     label='联赛归属'
                 )
                 el-table-column(
