@@ -3,6 +3,7 @@
         v-model="form.league_id",
         placeholder='请选择联赛赛区',
         @change='emitName',
+        clearable,
         :loading='leagueLoading'
     )
         el-option(

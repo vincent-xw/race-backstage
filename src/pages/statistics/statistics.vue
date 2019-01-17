@@ -48,10 +48,6 @@
                 :data='statisticsData'
             )
                 el-table-column(
-                    prop='id',
-                    label='#'
-                )
-                el-table-column(
                     prop='league_name',
                     label='联赛归属'
                 )
