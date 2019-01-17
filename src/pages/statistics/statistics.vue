@@ -57,15 +57,18 @@
                 )
                 el-table-column(
                     prop='all_count',
-                    label='总投注'
+                    label='总投注',
+                    :formatter='formatScore'
                 )
                 el-table-column(
                     prop='win_count',
-                    label='总盈利'
+                    label='总盈利',
+                    :formatter='formatScore'
                 )
                 el-table-column(
                     prop='',
-                    label='玩家总盈利'
+                    label='玩家总盈利',
+                    :formatter='formatScore'
                 )
                     template(slot-scope = 'scope') {{scope.row.all_count - scope.row.win_count}}
 
@@ -74,7 +77,9 @@
 </template>
 <script>
 import leagueList from '@/components/leagueList/leagueList';
+import mixins from '@/public/mixins/mixins';
 export default {
+    mixins: [mixins],
     data() {
         return {
             form: {},
