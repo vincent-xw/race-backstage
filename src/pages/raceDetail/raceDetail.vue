@@ -180,7 +180,8 @@
                 )
                 el-table-column(
                     prop='bet_time',
-                    label='投注时间'
+                    label='投注时间',
+                    :formatter='timeFormatter'
                 )
                 el-table-column(
                     prop='all_count',
