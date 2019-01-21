@@ -65,6 +65,11 @@
                 )
                 el-table-column(
                     align='center',
+                    prop='race_order',
+                    label='比赛场次'
+                )
+                el-table-column(
+                    align='center',
                     prop='created_time',
                     label='创建时间',
                     :formatter='timeFormatter'
