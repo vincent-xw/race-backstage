@@ -159,6 +159,10 @@
                 :data='raceDetail.bet_info'
             )
                 el-table-column(
+                    prop='bet_id',
+                    label='投注id'
+                )
+                el-table-column(
                     prop='username',
                     label='代理'
                 )
