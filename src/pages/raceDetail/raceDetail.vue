@@ -159,10 +159,6 @@
                 :data='raceDetail.bet_info'
             )
                 el-table-column(
-                    prop='id',
-                    label='#'
-                )
-                el-table-column(
                     prop='username',
                     label='代理'
                 )
