@@ -171,11 +171,11 @@
                     label='投注马匹'
                 )
                 el-table-column(
-                    prop='bet_foot',
+                    prop='bet_head',
                     label='投注头'
                 )
                 el-table-column(
-                    prop='bet_head',
+                    prop='bet_foot',
                     label='投注脚'
                 )
                 el-table-column(
