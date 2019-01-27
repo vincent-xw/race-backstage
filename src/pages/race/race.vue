@@ -13,6 +13,7 @@
                     el-form-item(label='时间')
                         el-date-picker(
                             v-model="form.date",
+                            unlink-panels,
                             type='daterange',
                             value-format='timestamp',
                             range-separator='至',
