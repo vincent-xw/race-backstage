@@ -42,10 +42,11 @@
                                 value="day"
                             )
                     el-form-item
-                        el-button(type='primary', @click="getData") 搜索
+                        el-button(type='primary', @click="getData", v-loading='loading') 搜索
         el-row.statistics-container
             el-table(
-                :data='statisticsData'
+                :data='statisticsData',
+                :loading='loading'
             )
                 el-table-column(
                     prop='league_name',
@@ -67,10 +68,9 @@
                 )
                 el-table-column(
                     prop='',
-                    label='玩家总盈利',
-                    :formatter='formatScore'
+                    label='玩家总盈利'
                 )
-                    template(slot-scope = 'scope') {{scope.row.all_count - scope.row.win_count}}
+                    template(slot-scope = 'scope') {{(scope.row.all_count - scope.row.win_count) / 10}}
 
                   
 
@@ -84,7 +84,8 @@ export default {
         return {
             form: {},
             statisticsData: [],
-            league_name: ''
+            league_name: '',
+            loading: false
         };
     },
     components: {
