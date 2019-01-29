@@ -21,6 +21,8 @@
                         )
                     el-form-item(label='联赛归属')
                         league-list(:form='form', @getLeagueName="getLeagueName")
+                    el-form-item(label='代理')
+                        agent-list(:form='form')
                     el-form-item(label='统计类型')
                         el-select(
                             v-model="form.type",
@@ -77,6 +79,7 @@
 </template>
 <script>
 import leagueList from '@/components/leagueList/leagueList';
+import agentList from '@/components/agentList/agentList';
 import mixins from '@/public/mixins/mixins';
 export default {
     mixins: [mixins],
@@ -89,7 +92,8 @@ export default {
         };
     },
     components: {
-        leagueList
+        leagueList,
+        agentList
     },
     methods: {
         getData() {
